@@ -1,0 +1,34 @@
+name: labs
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    outputs:
+      labs: ${{ steps.find.outputs.labs }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: find
+        run: echo "labs=$(ls -d episode-*/ | sed 's:/$::' | jq -R . | jq -sc .)" >> "$GITHUB_OUTPUT"
+
+  test:
+    needs: discover
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        lab: ${{ fromJson(needs.discover.outputs.labs) }}
+        python: ["3.10", "3.12", "3.13"]
+    name: ${{ matrix.lab }} (py${{ matrix.python }})
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - run: pip install -r ${{ matrix.lab }}/requirements.txt
+      - run: bash ${{ matrix.lab }}/ci.sh
