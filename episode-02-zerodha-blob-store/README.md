@@ -60,7 +60,7 @@ mid-burst and reopens the files. Example from a test run:
 acknowledged 4,432, lost after kill -9: 4,096
 ```
 
-All 4,096 of those writes was acknowledged to the client and is gone. That's
+All 4,096 of those writes were acknowledged to the client and are gone. That's
 the trade Blobasaur's async mode makes: fine for chart layouts, not for trades.
 
 ## 4. Check it
