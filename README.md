@@ -14,6 +14,7 @@ laptop, change one design decision, and prove the fix with a checker.
 | Ep | Lab | You break | You fix | Concepts |
 |---|---|---|---|---|
 | 1 | [The day Facebook vanished](episode-01-facebook-dns-vanish/) | Two healthy DNS sites withdraw themselves and the shop disappears | Fail static: keep the last working route while a site can still answer | DNS, health checks, fail static, correlated failure |
+| 2 | [Zerodha's storage hit a wall](episode-02-zerodha-blob-store/) | One SQLite writer caps throughput; async acks lose writes on kill -9 | Shards and batched commits, at least 4x faster with zero lost writes | sharding, group commit, durability trade-offs |
 
 Each lab is standalone. Pick any folder and do them in any order.
 
@@ -37,7 +38,7 @@ episode-NN-<name>/
   README.md          what happened, what to do, how to check
   requirements.txt   the lab's Python dependencies
   <lab>.py           the simulation (you don't need to edit it)
-  policy.py          the one file you change
+  policy.py / config.py   the one file you change
   solution/          a sample fix (try first, peek later)
   ci.sh              the lab's own test, run by CI
 ```

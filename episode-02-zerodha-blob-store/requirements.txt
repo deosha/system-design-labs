@@ -1,0 +1,1 @@
+# No third-party packages: Python's built-in sqlite3 is enough.
