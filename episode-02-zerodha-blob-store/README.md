@@ -21,7 +21,8 @@ client ─┘                └─ ...
 ```
 
 [`blobstore.py`](blobstore.py) is the store: you don't need to edit it. Every commit is
-fsynced (`synchronous=FULL`), like durable storage. [`config.py`](config.py) is the one
+fsynced (`synchronous=FULL`) and also waits 3 ms (`FSYNC_MS`), roughly what a real disk
+takes to flush, so the results look the same on a laptop, a server or a CI runner. [`config.py`](config.py) is the one
 file you change:
 
 | Setting | Meaning |
@@ -37,7 +38,7 @@ python3 lab.py wall
 ```
 
 16 clients write 8 KB blobs for 4 seconds through one file and one writer. Every
-write waits for its own fsync, so throughput is a few hundred writes a second.
+write waits for its own flush, so throughput stays at a few hundred writes a second at most.
 
 ## 2. Shard and batch
 
@@ -56,10 +57,10 @@ It writes from a separate process, reads every acknowledgement, then `kill -9`s 
 mid-burst and reopens the files. Example from a test run:
 
 ```
-acknowledged 5,149, lost after kill -9: 4,096
+acknowledged 4,432, lost after kill -9: 4,096
 ```
 
-Every one of those 4,096 writes was acknowledged to the client and is gone. That's
+All 4,096 of those writes was acknowledged to the client and is gone. That's
 the trade Blobasaur's async mode makes: fine for chart layouts, not for trades.
 
 ## 4. Check it
@@ -73,9 +74,9 @@ Passes when your config is at least **4x** faster than one shard with batch size
 pass: you have to get the speed from sharding and batching.
 
 ```
-baseline (1 shard, batch 1): 458 writes/s
-your config:                 7,231 writes/s  (15.8x)
-crash test: acknowledged 916, lost 0
+baseline (1 shard, batch 1): 181 writes/s
+your config:                 2,137 writes/s  (11.8x)
+crash test: acknowledged 361, lost 0
 PASS: at least 4x faster, and no acknowledged write was lost
 ```
 

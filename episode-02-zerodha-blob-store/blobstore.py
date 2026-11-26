@@ -1,7 +1,12 @@
 """A tiny blob store on SQLite, shaped like Blobasaur: N shard files, one writer
 thread per shard, optional batched commits, optional async acknowledgement.
 You don't need to edit this file. Change config.py instead."""
-import hashlib, os, queue, sqlite3, threading
+import hashlib, os, queue, sqlite3, threading, time
+
+# A real disk takes a few milliseconds to fsync a commit. Fast CI disks and RAM
+# filesystems hide that, so every commit also waits this long. It makes the
+# single-writer wall show up the same way on every machine.
+FSYNC_MS = 3
 
 
 class Store:
@@ -47,6 +52,7 @@ class Store:
                     break
             c.executemany("INSERT OR REPLACE INTO blobs VALUES (?, ?)", [(k, v) for k, v, _ in batch])
             c.commit()
+            time.sleep(FSYNC_MS / 1000)
             for _, _, done in batch:
                 if done:
                     done.set()
